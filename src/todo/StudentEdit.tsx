@@ -49,8 +49,6 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
     }, [match.params.id, students]);
     const handleSave = () => {
 
-        var g = parseInt(grupa);
-        var ac = (active == 'true');
         const editedStudent = student ? {...student, id, nume, prenume, grupa, active} : {id, nume, prenume, grupa, active};
         saveStudent && saveStudent(editedStudent).then(() => history.goBack());
     };
