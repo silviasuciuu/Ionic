@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     IonButton,
     IonButtons,
@@ -10,22 +10,19 @@ import {
     IonTitle,
     IonToolbar
 } from '@ionic/react';
-import {getLogger} from '../core';
-import {StudentContext} from './StudentProvider';
-import {RouteComponentProps} from 'react-router';
-import {StudentProps} from './StudentProps';
+import { getLogger } from '../core';
+import { StudentContext } from './StudentProvider';
+import { RouteComponentProps } from 'react-router';
+import { StudentProps } from './StudentProps';
 
 const log = getLogger('StudentEdit');
 
 interface StudentEditProps extends RouteComponentProps<{
     id?: string;
-}> {
-}
+}> {}
 
-const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
-    const {students, saving, savingError, saveStudent} = useContext(StudentContext);
-    const [id, setId] = useState('');
-
+const StudentEdit: React.FC<StudentEditProps> = ({ history, match }) => {
+    const { students, saving, savingError, saveStudent } = useContext(StudentContext);
     const [nume, setNume] = useState('');
     const [prenume, setPrenume] = useState('');
     const [grupa, setGrupa] = useState('');
@@ -35,23 +32,15 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
     useEffect(() => {
         log('useEffect');
         const routeId = match.params.id || '';
-
-        const s = students?.find(it => it.id === routeId);
-        setStudent(s);
-        if (s) {
-            setNume(s.nume);
-            setPrenume(s.prenume);
-            setGrupa(s.grupa.toString());
-            setActive(s.active.toString());
-
-
+        const student = students?.find(it => it._id === routeId);
+        setStudent(student);
+        if (student) {
+            setNume(student.nume);
+            setPrenume(student.prenume);
         }
     }, [match.params.id, students]);
     const handleSave = () => {
-
-        var g = parseInt(grupa);
-        var ac = (active == 'true');
-        const editedStudent = student ? {...student, id, nume, prenume, grupa, active} : {id, nume, prenume, grupa, active};
+        const editedStudent = student ? { ...student, nume,prenume,grupa,active} : { nume,prenume,grupa,active };
         saveStudent && saveStudent(editedStudent).then(() => history.goBack());
     };
     log('render');
@@ -68,16 +57,12 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
                 </IonToolbar>
             </IonHeader>
             <IonContent>
+                <IonInput value={nume} onIonChange={e => setNume(e.detail.value || '')} />
+                <IonInput value={prenume} onIonChange={e => setPrenume(e.detail.value || '')} />
 
-                <IonInput placeholder={"Nume"} value={nume} onIonChange={e => setNume(e.detail.value || '')}/>
-                <IonInput placeholder={"Prenume"} value={prenume} onIonChange={e => setPrenume(e.detail.value || '')}/>
-                <IonInput placeholder={"Grupa"} value={grupa}  onIonChange={e => setGrupa(e.detail.value || '')}/>
-                <IonInput placeholder={"Acitve"} value={active}  onIonChange={e => setActive(e.detail.value || '')}/>
-
-
-                <IonLoading isOpen={saving}/>
+                <IonLoading isOpen={saving} />
                 {savingError && (
-                    <div>{savingError.message || 'Failed to save student'}</div>
+                    <div>{savingError.message || 'Failed to save item'}</div>
                 )}
             </IonContent>
         </IonPage>

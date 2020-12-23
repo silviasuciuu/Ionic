@@ -1,6 +1,8 @@
+import {RouteComponentProps} from "react-router";
+
 export interface StudentProps
 {
-    id?:string;
+    _id?:string;
     nume:string;
     prenume:string;
     grupa:string;

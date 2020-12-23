@@ -1,58 +1,33 @@
 import axios from 'axios';
-import { getLogger } from '../core';
+import { authConfig, baseUrl, getLogger, withLogs } from '../core';
 import { StudentProps } from './StudentProps';
 
-const log = getLogger('itemApi');
+const studentUrl = `http://${baseUrl}/api/student`;
 
-const baseUrl = 'localhost:3000';
-const studentUrl = `http://${baseUrl}/student`;
-
-interface ResponseProps<T> {
-    data: T;
+export const getStudents: (token: string) => Promise<StudentProps[]> = token => {
+    return withLogs(axios.get(studentUrl, authConfig(token)), 'getStudents');
 }
 
-function withLogs<T>(promise: Promise<ResponseProps<T>>, fnName: string): Promise<T> {
-    log(`${fnName} - started`);
-    return promise
-        .then(res => {
-            log(`${fnName} - succeeded`);
-            return Promise.resolve(res.data);
-        })
-        .catch(err => {
-            log(`${fnName} - failed`);
-            return Promise.reject(err);
-        });
+export const createStudent: (token: string, student: StudentProps) => Promise<StudentProps[]> = (token, student) => {
+    return withLogs(axios.post(studentUrl, student, authConfig(token)), 'createStudent');
 }
 
-const config = {
-    headers: {
-        'Content-Type': 'application/json'
-    }
-};
-
-export const getStudents: () => Promise<StudentProps[]> = () => {
-    return withLogs(axios.get(studentUrl, config), 'getStudents');
-}
-
-export const createStudent: (item: StudentProps) => Promise<StudentProps[]> = item => {
-    return withLogs(axios.post(studentUrl, item, config), 'createStudents');
-}
-
-export const updateStudent: (item: StudentProps) => Promise<StudentProps[]> = item => {
-    return withLogs(axios.put(`${studentUrl}/${item.id}`, item, config), 'updateStudents');
+export const updateStudent: (token: string, student: StudentProps) => Promise<StudentProps[]> = (token, student) => {
+    return withLogs(axios.put(`${studentUrl}/${student._id}`, student, authConfig(token)), 'updateStudent');
 }
 
 interface MessageData {
-    event: string;
-    payload: {
-        student: StudentProps;
-    };
+    type: string;
+    payload: StudentProps;
 }
 
-export const newWebSocket = (onMessage: (data: MessageData) => void) => {
-    const ws = new WebSocket(`ws://${baseUrl}`)
+const log = getLogger('ws');
+
+export const newWebSocket = (token: string, onMessage: (data: MessageData) => void) => {
+    const ws = new WebSocket(`ws://${baseUrl}`);
     ws.onopen = () => {
         log('web socket onopen');
+        ws.send(JSON.stringify({ type: 'authorization', payload: { token } }));
     };
     ws.onclose = () => {
         log('web socket onclose');

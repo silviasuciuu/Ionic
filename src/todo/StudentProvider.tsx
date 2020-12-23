@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useReducer } from 'react';
+import React, { useCallback, useContext, useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { getLogger } from '../core';
 import { StudentProps } from './StudentProps';
 import { createStudent, getStudents, newWebSocket, updateStudent } from './studentApi';
+import { AuthContext } from '../auth';
 
 const log = getLogger('StudentProvider');
 
@@ -27,35 +28,35 @@ const initialState: StudentsState = {
     saving: false,
 };
 
-const FETCH_ITEMS_STARTED = 'FETCH_ITEMS_STARTED';
-const FETCH_ITEMS_SUCCEEDED = 'FETCH_ITEMS_SUCCEEDED';
-const FETCH_ITEMS_FAILED = 'FETCH_ITEMS_FAILED';
-const SAVE_ITEM_STARTED = 'SAVE_ITEM_STARTED';
-const SAVE_ITEM_SUCCEEDED = 'SAVE_ITEM_SUCCEEDED';
-const SAVE_ITEM_FAILED = 'SAVE_ITEM_FAILED';
+const FETCH_STUDENTS_STARTED = 'FETCH_STUDENTS_STARTED';
+const FETCH_STUDENTS_SUCCEEDED = 'FETCH_STUDENTS_SUCCEEDED';
+const FETCH_STUDENTS_FAILED = 'FETCH_STUDENTS_FAILED';
+const SAVE_STUDENTS_STARTED = 'SAVE_STUDENTS_STARTED';
+const SAVE_STUDENTS_SUCCEEDED = 'SAVE_STUDENTS_SUCCEEDED';
+const SAVE_STUDENTS_FAILED = 'SAVE_STUDENTS_FAILED';
 
 const reducer: (state: StudentsState, action: ActionProps) => StudentsState =
     (state, { type, payload }) => {
         switch (type) {
-            case FETCH_ITEMS_STARTED:
+            case FETCH_STUDENTS_STARTED:
                 return { ...state, fetching: true, fetchingError: null };
-            case FETCH_ITEMS_SUCCEEDED:
+            case FETCH_STUDENTS_SUCCEEDED:
                 return { ...state, students: payload.students, fetching: false };
-            case FETCH_ITEMS_FAILED:
+            case FETCH_STUDENTS_FAILED:
                 return { ...state, fetchingError: payload.error, fetching: false };
-            case SAVE_ITEM_STARTED:
+            case SAVE_STUDENTS_STARTED:
                 return { ...state, savingError: null, saving: true };
-            case SAVE_ITEM_SUCCEEDED:
+            case SAVE_STUDENTS_SUCCEEDED:
                 const students = [...(state.students || [])];
                 const student = payload.student;
-                const index = students.findIndex(it => it.id === student.id);
+                const index = students.findIndex(it => it._id === student._id);
                 if (index === -1) {
                     students.splice(0, 0, student);
                 } else {
                     students[index] = student;
                 }
                 return { ...state, students, saving: false };
-            case SAVE_ITEM_FAILED:
+            case SAVE_STUDENTS_FAILED:
                 return { ...state, savingError: payload.error, saving: false };
             default:
                 return state;
@@ -69,11 +70,12 @@ interface StudentProviderProps {
 }
 
 export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) => {
+    const { token } = useContext(AuthContext);
     const [state, dispatch] = useReducer(reducer, initialState);
     const { students, fetching, fetchingError, saving, savingError } = state;
-    useEffect(getStudentsEffect, []);
-    useEffect(wsEffect, []);
-    const saveStudent = useCallback<SaveStudentFn>(saveStudentCallback, []);
+    useEffect(getStudentsEffect, [token]);
+    useEffect(wsEffect, [token]);
+    const saveStudent = useCallback<SaveStudentFn>(saveStudentCallback, [token]);
     const value = { students, fetching, fetchingError, saving, savingError, saveStudent };
     log('returns');
     return (
@@ -90,17 +92,20 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) =>
         }
 
         async function fetchStudents() {
+            if (!token?.trim()) {
+                return;
+            }
             try {
                 log('fetchStudents started');
-                dispatch({ type: FETCH_ITEMS_STARTED });
-                const students = await getStudents();
+                dispatch({ type: FETCH_STUDENTS_STARTED });
+                const students = await getStudents(token);
                 log('fetchStudents succeeded');
                 if (!canceled) {
-                    dispatch({ type: FETCH_ITEMS_SUCCEEDED, payload: { students } });
+                    dispatch({ type: FETCH_STUDENTS_SUCCEEDED, payload: { students } });
                 }
             } catch (error) {
                 log('fetchStudents failed');
-                dispatch({ type: FETCH_ITEMS_FAILED, payload: { error } });
+                dispatch({ type: FETCH_STUDENTS_FAILED, payload: { error } });
             }
         }
     }
@@ -108,33 +113,36 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) =>
     async function saveStudentCallback(student: StudentProps) {
         try {
             log('saveStudent started');
-            dispatch({ type: SAVE_ITEM_STARTED });
-            const savedStudent = await (student.id ? updateStudent(student) : createStudent(student));
+            dispatch({ type: SAVE_STUDENTS_STARTED });
+            const savedStudent = await (student._id ? updateStudent(token, student) : createStudent(token, student));
             log('saveStudent succeeded');
-            dispatch({ type: SAVE_ITEM_SUCCEEDED, payload: { student: savedStudent } });
+            dispatch({ type: SAVE_STUDENTS_SUCCEEDED, payload: { student: savedStudent} });
         } catch (error) {
             log('saveStudent failed');
-            dispatch({ type: SAVE_ITEM_FAILED, payload: { error } });
+            dispatch({ type: SAVE_STUDENTS_FAILED, payload: { error } });
         }
     }
 
     function wsEffect() {
         let canceled = false;
         log('wsEffect - connecting');
-        const closeWebSocket = newWebSocket(message => {
-            if (canceled) {
-                return;
-            }
-            const { event, payload: { student }} = message;
-            log(`ws message, student ${event}`);
-            if (event === 'created' || event === 'updated') {
-                dispatch({ type: SAVE_ITEM_SUCCEEDED, payload: { student } });
-            }
-        });
+        let closeWebSocket: () => void;
+        if (token?.trim()) {
+            closeWebSocket = newWebSocket(token, message => {
+                if (canceled) {
+                    return;
+                }
+                const { type, payload: student } = message;
+                log(`ws message, student ${type}`);
+                if (type === 'created' || type === 'updated') {
+                    dispatch({ type: SAVE_STUDENTS_SUCCEEDED, payload: { student } });
+                }
+            });
+        }
         return () => {
             log('wsEffect - disconnecting');
             canceled = true;
-            closeWebSocket();
+            closeWebSocket?.();
         }
     }
 };

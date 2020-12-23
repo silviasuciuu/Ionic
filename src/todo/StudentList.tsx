@@ -34,8 +34,8 @@ const StudentList: React.FC<RouteComponentProps> = ({ history }) => {
                 {students && (
                     <IonList>
 
-                        {students.map(({ id, nume,prenume,grupa,active}) =>
-                            <Student key={id} id={id} nume={nume} prenume={prenume} grupa={grupa} active={active}  onEdit={id => history.push(`/student/${id}`)} />)}
+                        {students.map(({ _id, nume,prenume,grupa,active}) =>
+                            <Student key={_id} _id={_id} nume={nume} prenume={prenume} grupa={grupa} active={active}  onEdit={id => history.push(`/student/${id}`)} />)}
                     </IonList>
                 )}
                 {fetchingError && (

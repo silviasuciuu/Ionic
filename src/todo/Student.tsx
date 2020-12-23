@@ -1,23 +1,76 @@
 import React from 'react';
-import { IonItem, IonLabel } from '@ionic/react';
-import { StudentProps } from './StudentProps';
+import {Redirect} from "react-router-dom";
+import {useHistory} from "react-router-dom";
+import {
+    IonItem,
+    IonLabel,
+    IonButton,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonLoading,
+    IonList, IonFab, IonFabButton, IonIcon, IonPage,
+} from '@ionic/react';
+import {StudentProps} from './StudentProps';
+import {add} from "ionicons/icons";
+import {RouteComponentProps} from "react-router";
 
 interface StudentPropsExt extends StudentProps {
     onEdit: (id?: string) => void;
 }
+let history = useHistory();
 
-const Student: React.FC<StudentPropsExt> = ({ id, nume,prenume,grupa,active, onEdit }) => {
+// @ts-ignore
+const Student: React.FC<StudentPropsExt> = ({_id, nume, prenume, grupa, active, onEdit}) => {
     return (
-        <IonItem onClick={() => onEdit(id)}>
-            <IonLabel>{id}</IonLabel>
-            <IonLabel>{nume}</IonLabel>
-            <IonLabel>{prenume}</IonLabel>
-            <IonLabel>{grupa}</IonLabel>
-            <IonLabel>{active}</IonLabel>
 
 
-        </IonItem>
+        <IonPage>
+            <IonHeader>
+
+            </IonHeader>
+            <IonContent>
+                <IonItem onClick={() => onEdit(_id)}>
+
+                    <IonLabel>{_id}</IonLabel>
+                    <IonLabel>{nume}</IonLabel>
+                    <IonLabel>{prenume}</IonLabel>
+                    <IonLabel>{grupa}</IonLabel>
+                    <IonLabel>{active}</IonLabel>
+
+                </IonItem>
+                <IonButton onClick={() => history.push('/login')
+                }>Logout</IonButton>
+            </IonContent>
+        </IonPage>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*
+             <IonItem onClick={() => onEdit(_id)}>
+
+                 <IonLabel>{_id}</IonLabel>
+                 <IonLabel>{nume}</IonLabel>
+                 <IonLabel>{prenume}</IonLabel>
+                 <IonLabel>{grupa}</IonLabel>
+                 <IonLabel>{active}</IonLabel>
+
+             </IonItem>
+             */
     );
+
 };
 
 export default Student;
