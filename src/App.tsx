@@ -33,6 +33,8 @@ const App: React.FC = () => (
                     <Route path="/login" component={Login} exact={true}/>
                     <StudentProvider>
                         <PrivateRoute path="/students" component={StudentList} exact={true}/>
+                        <PrivateRoute path="/logout" component={Login} exact={true}/>
+
                         <PrivateRoute path="/student" component={StudentEdit} exact={true}/>
                         <PrivateRoute path="/student/:id" component={StudentEdit} exact={true}/>
                     </StudentProvider>
