@@ -57,12 +57,14 @@ const StudentEdit: React.FC<StudentEditProps> = ({ history, match }) => {
                 </IonToolbar>
             </IonHeader>
             <IonContent>
-                <IonInput value={nume} onIonChange={e => setNume(e.detail.value || '')} />
-                <IonInput value={prenume} onIonChange={e => setPrenume(e.detail.value || '')} />
 
-                <IonLoading isOpen={saving} />
+                <IonInput placeholder={"Nume"} value={nume} onIonChange={e => setNume(e.detail.value || '')}/>
+                <IonInput placeholder={"Prenume"} value={prenume} onIonChange={e => setPrenume(e.detail.value || '')}/>
+
+
+                <IonLoading isOpen={saving}/>
                 {savingError && (
-                    <div>{savingError.message || 'Failed to save item'}</div>
+                    <div>{savingError.message || 'Failed to save student'}</div>
                 )}
             </IonContent>
         </IonPage>
