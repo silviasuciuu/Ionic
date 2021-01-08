@@ -7,6 +7,8 @@ import {
     IonHeader,
     IonIcon,
     IonItem,
+    IonSelect,
+    IonSelectOption,
     IonSearchbar,
     IonList, IonLoading,
     IonPage,
@@ -21,13 +23,16 @@ import {Plugins} from "@capacitor/core";
 import {AuthContext} from "../auth";
 
 const log = getLogger('StudentList');
-
+let s = new Set('');
 const StudentList: React.FC<RouteComponentProps> = ({history}) => {
     const {students, fetching, fetchingError} = useContext(StudentContext);
     log('render');
     const {token} = useContext(AuthContext);
     const [names, setNames] = useState<string[]>([]);
     const [searchName, setSearchName] = useState<string>('');
+    const [searchStatus, setSearchStatus] = useState<string>('');
+    var statusuri: string[] = [];
+    let v: string[] = [];
 
     function fetchNames() {
         var myHeaders = new Headers({
@@ -42,14 +47,15 @@ const StudentList: React.FC<RouteComponentProps> = ({history}) => {
         var obj: any;
         resp.then(res => res.json())
             .then(data => obj = data)
-            .then(() => obj.forEach((x: { nume: string; }) => {
+            .then(() => obj.forEach((x: { nume: string, status: string }) => {
                 setNames([...names, x.nume])
+                statusuri.push(x.status);
             }));
 
     }
 
     useIonViewWillEnter(async () => {
-         fetchNames();
+        fetchNames();
     });
 
 
@@ -71,38 +77,47 @@ const StudentList: React.FC<RouteComponentProps> = ({history}) => {
                 <IonLoading isOpen={fetching} message="Fetching students"/>
                 {students && (
                     <IonList>
-                        {students.filter(st=>st.nume.indexOf(searchName)>=0)
+                        {students.filter(st => st.nume.indexOf(searchName) >= 0).filter(st=>st.active.indexOf(searchStatus) == 0)
 
-                            .map(({ _id, nume,prenume,grupa,active}) =>
-                            <Student key={_id} _id={_id} nume={nume} prenume={prenume} grupa={grupa} active={active}  onEdit={id => history.push(`/student/${id}`)} />)}
+                            .map(({_id, nume, prenume, grupa, active}) =>
+                                <Student key={_id} _id={_id} nume={nume} prenume={prenume} grupa={grupa} active={active}
+                                         onEdit={id => history.push(`/student/${id}`)}/>)}
 
                     </IonList>
+
 
                 )}
                 {fetchingError && (
                     <div>{fetchingError.message || 'Failed to fetch students'}</div>
                 )}
+
                 <IonFab vertical="bottom" horizontal="end" slot="fixed" {...setStorage()}>
                     <IonFabButton onClick={() => history.push('/student')}>
                         <IonIcon icon={add}/>
                     </IonFabButton>
                 </IonFab>
 
-                <IonFab vertical="top" horizontal="end" slot="fixed">
-                    <IonFabButton onClick={() => logout()}>Logout
-                    </IonFabButton>
-                </IonFab>
+                {students && (
+                    <IonSelect value={searchStatus} placeholder="Select active"
+                               onIonChange={e => setSearchStatus(e.detail.value)}>
+                        {
+                            students.forEach(st => s.add(st.active))
+                        }
+
+                        {
+                            s.forEach(x => v.push(x))
+                        }
+
+                        {
+                            v.map(stud => <IonSelectOption key={stud} value={stud}>{stud}</IonSelectOption>)}
+                    </IonSelect>)}
+
 
 
             </IonContent>
         </IonPage>
     );
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    function logout() {
-
-        history.push('/login')
-    }
 
     function setStorage() {
         const {Storage} = Plugins;
