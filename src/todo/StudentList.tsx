@@ -1,146 +1,128 @@
+
 import React, {useContext, useEffect, useState} from 'react';
-import {RouteComponentProps} from 'react-router';
+import { RouteComponentProps } from 'react-router';
+import { Redirect } from "react-router-dom";
 import {
+    IonButton, IonButtons,
     IonContent,
     IonFab,
     IonFabButton,
     IonHeader,
-    IonIcon,
-    IonItem,
-    IonSelect,
-    IonSelectOption,
-    IonSearchbar,
-    IonList, IonLoading,
-    IonPage,
+    IonIcon, IonInfiniteScroll, IonInfiniteScrollContent,
+    IonLoading,
+    IonPage, IonSearchbar, IonSelect, IonSelectOption,
     IonTitle,
-    IonToolbar, IonCard, useIonViewWillEnter
+    IonToolbar
 } from '@ionic/react';
 import {add} from 'ionicons/icons';
 import Student from './Student';
-import {getLogger} from '../core';
-import {StudentContext} from './StudentProvider';
-import {Plugins} from "@capacitor/core";
+import { getLogger } from '../core';
+import { StudentContext } from './StudentProvider';
 import {AuthContext} from "../auth";
+import {StudentProps} from "./StudentProps";
 
-const log = getLogger('StudentList');
-let s = new Set('');
-const StudentList: React.FC<RouteComponentProps> = ({history}) => {
-    const {students, fetching, fetchingError} = useContext(StudentContext);
-    log('render');
-    const {token} = useContext(AuthContext);
-    const [names, setNames] = useState<string[]>([]);
-    const [searchName, setSearchName] = useState<string>('');
-    const [searchStatus, setSearchStatus] = useState<string>('');
-    var statusuri: string[] = [];
-    let v: string[] = [];
+const log = getLogger('PersonList');
 
-    function fetchNames() {
-        var myHeaders = new Headers({
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/x-www-form-urlencoded'
-        });
+const StudentList: React.FC<RouteComponentProps> = ({ history }) => {
+    const { students, fetching, fetchingError } = useContext(StudentContext);
+    const [disableInfiniteScroll, setDisableInfiniteScroll] = useState<boolean>(
+        false
+    );
+    const [filter, setFilter] = useState<string | undefined>(undefined);
+    const [search, setSearch] = useState<string>('');
+    const [pos, setPos] = useState(10);
+    const selectOptions = ["true", "false"];
+    const [studentsShow, setStudentsShow] = useState<StudentProps[]>([]);
 
-        const resp = fetch("http://localhost:3000/api/student", {
-            headers: myHeaders,
-            method: 'GET'
-        })
-        var obj: any;
-        resp.then(res => res.json())
-            .then(data => obj = data)
-            .then(() => obj.forEach((x: { nume: string, status: string }) => {
-                setNames([...names, x.nume])
-                statusuri.push(x.status);
-            }));
-
+    log("render");
+    async function searchNext($event: CustomEvent<void>) {
+        if (students && pos < students.length) {
+            setStudentsShow([...students.slice(0, 10 + pos)]); //
+            setPos(pos + 5);
+        } else {
+            setDisableInfiniteScroll(true);
+        }
+        await ($event.target as HTMLIonInfiniteScrollElement).complete();
     }
 
-    useIonViewWillEnter(async () => {
-        fetchNames();
-    });
+    useEffect(() => {
+        if (students?.length) {
+            setStudentsShow(students.slice(0, pos));
+        }
+    }, [pos, students]);
 
+    useEffect(() => {
+        if (filter && students) {
+            setStudentsShow(students.filter((student) => student.active === filter));
+        }
+    }, [filter, students]);
 
+    useEffect(() => {
+        if (search && students) {
+            setStudentsShow(students.filter((student) => student.nume.startsWith(search)));
+        }
+    }, [search, students]);
     return (
         <IonPage>
             <IonHeader>
                 <IonToolbar>
-                    <IonTitle>My App</IonTitle>
+
+                    <IonButtons slot="end">
+                    </IonButtons>
                 </IonToolbar>
             </IonHeader>
-            <IonContent>
-
+            <IonContent fullscreen>
+                <IonLoading isOpen={fetching} message="Fetching Persons" />
                 <IonSearchbar
-                    value={searchName}
-                    debounce={100}
-                    onIonChange={e => setSearchName(e.detail.value!)}>
-                </IonSearchbar>
-
-                <IonLoading isOpen={fetching} message="Fetching students"/>
-                {students && (
-                    <IonList>
-                        {students.filter(st => st.nume.indexOf(searchName) >= 0).filter(st=>st.active.indexOf(searchStatus) == 0)
-
-                            .map(({_id, nume, prenume, grupa, active}) =>
-                                <Student key={_id} _id={_id} nume={nume} prenume={prenume} grupa={grupa} active={active}
-                                         onEdit={id => history.push(`/student/${id}`)}/>)}
-
-                    </IonList>
-
-
-                )}
+                    value={search}
+                    debounce={1000}
+                    onIonChange={(e) => setSearch(e.detail.value!)}
+                ></IonSearchbar>
+                <IonSelect
+                    value={filter}
+                    placeholder="Active"
+                    onIonChange={(e) => setFilter(e.detail.value)}
+                >
+                    {selectOptions.map((option) => (
+                        <IonSelectOption key={option} value={option}>
+                            {option}
+                        </IonSelectOption>
+                    ))}
+                </IonSelect>
+                {studentsShow &&
+                studentsShow.map((person: StudentProps) => {
+                    return (
+                        <Student
+                            key={person._id}
+                            _id={person._id}
+                            nume={person.nume}
+                            prenume={person.prenume}
+                            grupa={person.grupa}
+                            active={person.active}
+                            photoPath={person.photoPath}
+                            latitude={person.latitude}
+                            longitude={person.longitude}
+                            onEdit={(id) => history.push(`/student/${id}`)}
+                        />
+                    );
+                })}
+                <IonInfiniteScroll
+                    threshold="100px"
+                    disabled={disableInfiniteScroll}
+                    onIonInfinite={(e: CustomEvent<void>) => searchNext(e)}>
+                    <IonInfiniteScrollContent loadingText="Loading more contacts..."></IonInfiniteScrollContent>
+                </IonInfiniteScroll>
                 {fetchingError && (
-                    <div>{fetchingError.message || 'Failed to fetch students'}</div>
+                    <div>{fetchingError.message || 'Failed to fetch Persons'}</div>
                 )}
-
-                <IonFab vertical="bottom" horizontal="end" slot="fixed" {...setStorage()}>
+                <IonFab vertical="bottom" horizontal="end" slot="fixed">
                     <IonFabButton onClick={() => history.push('/student')}>
-                        <IonIcon icon={add}/>
+                        <IonIcon icon={add} />
                     </IonFabButton>
                 </IonFab>
-
-                {students && (
-                    <IonSelect value={searchStatus} placeholder="Select active"
-                               onIonChange={e => setSearchStatus(e.detail.value)}>
-                        {
-                            students.forEach(st => s.add(st.active))
-                        }
-
-                        {
-                            s.forEach(x => v.push(x))
-                        }
-
-                        {
-                            v.map(stud => <IonSelectOption key={stud} value={stud}>{stud}</IonSelectOption>)}
-                    </IonSelect>)}
-
-
-
             </IonContent>
         </IonPage>
     );
-
-
-    function setStorage() {
-        const {Storage} = Plugins;
-
-        let i = 0;
-        (async () => {
-            students?.forEach(async v => {
-                Storage.set({
-                    key: 'user' + i,
-                    value: JSON.stringify({
-                        nume: v.nume, prenume: v.prenume, grupa: v.grupa, active: v.active,
-                    })
-                });
-                i++;
-            })
-
-
-        })();
-        Storage.set({
-            key: 'token',
-            value: token
-        })
-    }
 };
 
 export default StudentList;

@@ -7,4 +7,7 @@ export interface StudentProps
     prenume:string;
     grupa:string;
     active:string;
+    photoPath: string;
+    latitude:number;
+    longitude:number;
 }
