@@ -144,7 +144,6 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
             })();
         }
     }
-
     //useEffect(chainAnimations, []);
     // useEffect(simpleAnimations, []);
     useEffect(chainAnimations, []);

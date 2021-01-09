@@ -8,6 +8,7 @@ import { AuthContext } from '../auth';
 const log = getLogger('StudentProvider');
 
 type SaveStudentFn = (student: StudentProps) => Promise<any>;
+type UpdateServerFn = () => Promise<any>;
 
 export interface StudentsState {
     students?: StudentProps[],
@@ -16,6 +17,8 @@ export interface StudentsState {
     saving: boolean,
     savingError?: Error | null,
     saveStudent?: SaveStudentFn,
+    updateServer?: UpdateServerFn,
+
 }
 
 interface ActionProps {
@@ -75,6 +78,7 @@ export const StudentProvider: React.FC<StudentProviderProps> = ({ children }) =>
     const { students, fetching, fetchingError, saving, savingError } = state;
     useEffect(getStudentsEffect, [token]);
     useEffect(wsEffect, [token]);
+
     const saveStudent = useCallback<SaveStudentFn>(saveStudentCallback, [token]);
     const value = { students, fetching, fetchingError, saving, savingError, saveStudent };
     log('returns');

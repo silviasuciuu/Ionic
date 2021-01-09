@@ -1,7 +1,6 @@
-
 import React, {useContext, useEffect, useState} from 'react';
-import { RouteComponentProps } from 'react-router';
-import { Redirect } from "react-router-dom";
+import {RouteComponentProps} from 'react-router';
+import {Redirect} from "react-router-dom";
 import {
     IonButton, IonButtons,
     IonContent,
@@ -12,19 +11,22 @@ import {
     IonLoading,
     IonPage, IonSearchbar, IonSelect, IonSelectOption,
     IonTitle,
+    IonLabel,
     IonToolbar
 } from '@ionic/react';
 import {add} from 'ionicons/icons';
 import Student from './Student';
-import { getLogger } from '../core';
-import { StudentContext } from './StudentProvider';
+import {getLogger} from '../core';
+import {StudentContext} from './StudentProvider';
 import {AuthContext} from "../auth";
 import {StudentProps} from "./StudentProps";
+import { useNetwork } from './useNetwork';
+import {useAppState} from "./useAppState";
 
 const log = getLogger('PersonList');
 
-const StudentList: React.FC<RouteComponentProps> = ({ history }) => {
-    const { students, fetching, fetchingError } = useContext(StudentContext);
+const StudentList: React.FC<RouteComponentProps> = ({history}) => {
+    const {students, fetching, fetchingError} = useContext(StudentContext);
     const [disableInfiniteScroll, setDisableInfiniteScroll] = useState<boolean>(
         false
     );
@@ -33,8 +35,11 @@ const StudentList: React.FC<RouteComponentProps> = ({ history }) => {
     const [pos, setPos] = useState(10);
     const selectOptions = ["true", "false"];
     const [studentsShow, setStudentsShow] = useState<StudentProps[]>([]);
+    const { appState } = useAppState();
+    const { networkStatus } = useNetwork();
 
     log("render");
+
     async function searchNext($event: CustomEvent<void>) {
         if (students && pos < students.length) {
             setStudentsShow([...students.slice(0, 10 + pos)]); //
@@ -65,14 +70,13 @@ const StudentList: React.FC<RouteComponentProps> = ({ history }) => {
     return (
         <IonPage>
             <IonHeader>
-                <IonToolbar>
-
-                    <IonButtons slot="end">
-                    </IonButtons>
-                </IonToolbar>
+                <IonTitle id={"status"}></IonTitle>
             </IonHeader>
+
             <IonContent fullscreen>
-                <IonLoading isOpen={fetching} message="Fetching Persons" />
+                <div>Network status is {JSON.stringify(networkStatus)}</div>
+
+                <IonLoading isOpen={fetching} message="Fetching students"/>
                 <IonSearchbar
                     value={search}
                     debounce={1000}
@@ -117,7 +121,7 @@ const StudentList: React.FC<RouteComponentProps> = ({ history }) => {
                 )}
                 <IonFab vertical="bottom" horizontal="end" slot="fixed">
                     <IonFabButton onClick={() => history.push('/student')}>
-                        <IonIcon icon={add} />
+                        <IonIcon icon={add}/>
                     </IonFabButton>
                 </IonFab>
             </IonContent>
