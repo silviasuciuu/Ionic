@@ -1,107 +1,3 @@
-/*import React, { useContext, useEffect, useState } from 'react';
-import {
-    IonButton,
-    IonButtons,
-    IonContent,
-    IonHeader,
-    IonInput,
-    IonLoading,
-    IonPage,
-    IonFabButton,
-    IonIcon,
-    IonTitle,
-    IonGrid,
-    IonCol,
-    IonRow,
-    IonFab,
-    IonImg,
-    IonToolbar
-} from '@ionic/react';
-import { getLogger } from '../core';
-import { StudentContext } from './StudentProvider';
-import { RouteComponentProps } from 'react-router';
-import { StudentProps } from './StudentProps';
-import {camera} from "ionicons/icons";
-import {Photo, usePhotoGallery} from "./usePhotoGallery";
-
-const log = getLogger('StudentEdit');
-
-interface StudentEditProps extends RouteComponentProps<{
-    id?: string;
-}> {}
-
-const StudentEdit: React.FC<StudentEditProps> = ({ history, match }) => {
-    const { photos, takePhoto } = usePhotoGallery();
-
-    const { students, saving, savingError, saveStudent } = useContext(StudentContext);
-    const [nume, setNume] = useState('');
-    const [prenume, setPrenume] = useState('');
-    const [grupa, setGrupa] = useState('');
-    const [active, setActive] = useState('');
-    const [photoToDelete, setPhotoToDelete] = useState<Photo>();
-    const [photoPath, setPhotoPath] = useState('');
-
-    const [student, setStudent] = useState<StudentProps>();
-    useEffect(() => {
-        log('useEffect');
-        const routeId = match.params.id || '';
-        const student = students?.find(it => it._id === routeId);
-        setStudent(student);
-        if (student) {
-            setNume(student.nume);
-            setPrenume(student.prenume);
-        }
-    }, [match.params.id, students]);
-    const handleSave = () => {
-        const editedStudent = student ? { ...student, nume,prenume,grupa,active} : { nume,prenume,grupa,active };
-        //@ts-ignore
-        saveStudent && saveStudent(editedStudent).then(() => history.goBack());
-    };
-    log('render');
-    return (
-        <IonPage>
-            <IonHeader>
-                <IonToolbar>
-                    <IonTitle>Edit</IonTitle>
-                    <IonButtons slot="end">
-                        <IonButton onClick={handleSave}>
-                            Save
-                        </IonButton>
-                    </IonButtons>
-                </IonToolbar>
-            </IonHeader>
-            <IonContent>
-
-                <IonInput placeholder={"Nume"} value={nume} onIonChange={e => setNume(e.detail.value || '')}/>
-                <IonInput placeholder={"Prenume"} value={prenume} onIonChange={e => setPrenume(e.detail.value || '')}/>
-                <IonHeader collapse="condense">
-                    <IonToolbar>
-                        <IonTitle size="large">Blank</IonTitle>
-                    </IonToolbar>
-                </IonHeader>
-                <IonImg
-                    style={{width: "500px", height: "500px", margin: "0 auto"}}
-                    onClick={() => {setPhotoToDelete(photos?.find(item => item.webviewPath === photoPath))}}
-                    alt={"No photo"}
-                    src={photoPath}
-                />
-
-                <IonFabButton onClick={() => takePhoto()}>
-                    <IonIcon icon={camera}/>
-                </IonFabButton>
-                <IonLoading isOpen={saving}/>
-                {savingError && (
-                    <div>{savingError.message || 'Failed to save student'}</div>
-                )}
-            </IonContent>
-        </IonPage>
-    );
-};
-
-export default StudentEdit;
-*/
-
-
 import React, {useContext, useEffect, useState} from 'react';
 import {
     IonActionSheet,
@@ -113,6 +9,7 @@ import {
     IonLoading,
     IonPage, IonRadio, IonRadioGroup,
     IonTitle,
+    createAnimation,
     IonToolbar,
     IonImg
 } from '@ionic/react';
@@ -123,6 +20,7 @@ import {StudentProps} from './StudentProps';
 import {camera, close, trash} from "ionicons/icons";
 import {Photo, usePhotoGallery} from "./usePhotoGallery";
 import {MyMap} from "./MyMap";
+import {CreateAnimation, Animation} from '@ionic/react';
 
 const log = getLogger('PersonEdit');
 
@@ -186,6 +84,70 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
         })
     };
 
+    function simpleAnimations() {
+        const label1 = document.querySelector('.label1');
+        if (label1) {
+            const animation = createAnimation()
+                .addElement(label1)
+                .duration(1000)
+                .direction('alternate')
+                .iterations(Infinity)
+                .keyframes([
+                    {offset: 0, transform: 'scale(1)', opacity: '1'},
+                    {
+                        offset: 1, transform: 'scale(0.5)', opacity: '0.5'
+                    }
+                ]);
+            animation.play();
+
+        }
+    }
+
+    function groupAnimations() {
+        const label1 = document.querySelector('.label1');
+        const label2 = document.querySelector('.label2');
+        if (label1 && label2) {
+            const animationA = createAnimation()
+                .addElement(label1)
+                .fromTo('transform', 'scale(0.5)', 'scale(1)');
+            const animationB = createAnimation()
+                .addElement(label2)
+                .fromTo('transform', 'scale(1)', 'scale(0.5)');
+            const parentAnimation = createAnimation()
+                .duration(10000)
+                .addAnimation([animationA, animationB]);
+            parentAnimation.play();
+        }
+    }
+
+    function chainAnimations() {
+        const elB = document.querySelector('.label1');
+        const elC = document.querySelector('.label2');
+        if (elB && elC) {
+            const animationA = createAnimation()
+                .addElement(elB)
+                .duration(3000)
+                .fromTo('transform', 'scale(0.5)', 'scale(1)')
+                .afterStyles({
+                    'background': 'red'
+                });
+            const animationB = createAnimation()
+                .addElement(elC)
+                .duration(5000)
+                .fromTo('transform', 'scale(1)', 'scale(0.5)')
+                .afterStyles({
+                    'background': 'red'
+                });
+            (async () => {
+                await animationA.play();
+                await animationB.play();
+            })();
+        }
+    }
+
+    //useEffect(chainAnimations, []);
+    // useEffect(simpleAnimations, []);
+    useEffect(chainAnimations, []);
 
     return (
         <IonPage>
@@ -201,11 +163,20 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
                 </IonToolbar>
             </IonHeader>
             <IonContent>
-                <IonInput className="inputField" placeholder="Nume" value={nume}
-                          onIonChange={e => setNume(e.detail.value || '')}/>
-                <IonInput className="inputField" placeholder="Prenume" value={prenume}
-                          onIonChange={e => setPrenume(e.detail.value || '')}/>
-
+                <IonItem>
+                    <div className="label1"><IonLabel>Nume:</IonLabel></div>
+                    <IonInput
+                        className="inputField"
+                        value={nume}
+                        onIonChange={e => setNume(e.detail.value || '')}/>
+                </IonItem>
+                <IonItem>
+                    <div className="label2"><IonLabel>Prenume:</IonLabel></div>
+                    <IonInput
+                        className="inputField"
+                        value={prenume}
+                        onIonChange={e => setPrenume(e.detail.value || '')}/>
+                </IonItem>
 
                 <IonImg
                     style={{width: "500px", height: "500px", margin: "0 auto"}}
