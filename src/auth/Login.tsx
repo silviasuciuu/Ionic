@@ -33,6 +33,7 @@ export const Login: React.FC<RouteComponentProps> = ({ history }) => {
             </IonHeader>
             <IonContent>
                 <IonInput
+                    className="inputField"
                     placeholder="email"
                     value={email}
                     onIonChange={e => setState({
@@ -40,9 +41,9 @@ export const Login: React.FC<RouteComponentProps> = ({ history }) => {
                         email: e.detail.value || ''
                     })}/>
                 <IonInput
+                    className="inputField"
                     placeholder="parola"
                     value={parola}
-                    type={"password"}
                     onIonChange={e => setState({
                         ...state,
                         parola: e.detail.value || ''

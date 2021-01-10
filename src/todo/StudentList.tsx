@@ -20,7 +20,7 @@ import {getLogger} from '../core';
 import {StudentContext} from './StudentProvider';
 import {AuthContext} from "../auth";
 import {StudentProps} from "./StudentProps";
-import { useNetwork } from './useNetwork';
+import {useNetwork} from './useNetwork';
 import {useAppState} from "./useAppState";
 
 const log = getLogger('PersonList');
@@ -35,11 +35,15 @@ const StudentList: React.FC<RouteComponentProps> = ({history}) => {
     const [pos, setPos] = useState(10);
     const selectOptions = ["true", "false"];
     const [studentsShow, setStudentsShow] = useState<StudentProps[]>([]);
-    const { appState } = useAppState();
-    const { networkStatus } = useNetwork();
+    const {appState} = useAppState();
+    const {networkStatus} = useNetwork();
+    const { logout } = useContext(AuthContext);
 
     log("render");
-
+    const handleLogout = () => {
+        logout?.();
+        return <Redirect to={{ pathname: "/login" }} />;
+    };
     async function searchNext($event: CustomEvent<void>) {
         if (students && pos < students.length) {
             setStudentsShow([...students.slice(0, 10 + pos)]); //
@@ -67,16 +71,24 @@ const StudentList: React.FC<RouteComponentProps> = ({history}) => {
             setStudentsShow(students.filter((student) => student.nume.startsWith(search)));
         }
     }, [search, students]);
+
+
+
+
     return (
         <IonPage>
             <IonHeader>
                 <IonTitle id={"status"}></IonTitle>
+
             </IonHeader>
 
             <IonContent fullscreen>
                 <div>Network status is {JSON.stringify(networkStatus)}</div>
-
+                    <IonButton onClick={handleLogout}>
+                        Logout
+                    </IonButton>
                 <IonLoading isOpen={fetching} message="Fetching students"/>
+
                 <IonSearchbar
                     value={search}
                     debounce={1000}
@@ -123,6 +135,11 @@ const StudentList: React.FC<RouteComponentProps> = ({history}) => {
                     <IonFabButton onClick={() => history.push('/student')}>
                         <IonIcon icon={add}/>
                     </IonFabButton>
+
+
+
+
+
                 </IonFab>
             </IonContent>
         </IonPage>

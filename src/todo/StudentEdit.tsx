@@ -21,6 +21,8 @@ import {camera, close, trash} from "ionicons/icons";
 import {Photo, usePhotoGallery} from "./usePhotoGallery";
 import {MyMap} from "./MyMap";
 import {CreateAnimation, Animation} from '@ionic/react';
+// @ts-ignore
+import {MyModal} from "./MyModal";
 
 const log = getLogger('PersonEdit');
 
@@ -144,6 +146,7 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
             })();
         }
     }
+
     //useEffect(chainAnimations, []);
     // useEffect(simpleAnimations, []);
     useEffect(chainAnimations, []);
@@ -165,6 +168,7 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
                 <IonItem>
                     <div className="label1"><IonLabel>Nume:</IonLabel></div>
                     <IonInput
+                        id={"l1"}
                         className="inputField"
                         value={nume}
                         onIonChange={e => setNume(e.detail.value || '')}/>
@@ -172,10 +176,12 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
                 <IonItem>
                     <div className="label2"><IonLabel>Prenume:</IonLabel></div>
                     <IonInput
+                        id={"l2"}
                         className="inputField"
                         value={prenume}
                         onIonChange={e => setPrenume(e.detail.value || '')}/>
                 </IonItem>
+                <MyModal/>
 
                 <IonImg
                     style={{width: "500px", height: "500px", margin: "0 auto"}}
@@ -205,32 +211,33 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
                         setLongitude(location.latLng.lng());
                     }}
                 />
-                <IonActionSheet
-                    isOpen={!!photoToDelete}
-                    buttons={[
-                        {
-                            text: "Delete",
-                            role: "destructive",
-                            icon: trash,
-                            handler: () => {
-                                if (photoToDelete) {
-                                    deletePhoto(photoToDelete);
-                                    setPhotoToDelete(undefined);
-                                    setPhotoPath("")
-                                }
+
+                    <IonActionSheet
+                        isOpen={!!photoToDelete}
+                        buttons={[
+                            {
+                                text: "Delete",
+                                role: "destructive",
+                                icon: trash,
+                                handler: () => {
+                                    if (photoToDelete) {
+                                        deletePhoto(photoToDelete);
+                                        setPhotoToDelete(undefined);
+                                        setPhotoPath("")
+                                    }
+                                },
                             },
-                        },
-                        {
-                            text: "Cancel",
-                            icon: close,
-                            role: "cancel",
-                        },
-                    ]}
-                    onDidDismiss={() => setPhotoToDelete(undefined)}
-                />
+                            {
+                                text: "Cancel",
+                                icon: close,
+                                role: "cancel",
+                            },
+                        ]}
+                        onDidDismiss={() => setPhotoToDelete(undefined)}
+                    />
             </IonContent>
         </IonPage>
-    );
+);
 };
 
 export default StudentEdit;
