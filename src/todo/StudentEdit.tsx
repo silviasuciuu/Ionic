@@ -38,8 +38,8 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
     const [grupa, setGrupa] = useState('');
     const [active, setActive] = useState('');
     const [photoPath, setPhotoPath] = useState('');
-    const [latitude, setLatitude] = useState(46.7533824);
-    const [longitude, setLongitude] = useState(23.5831296);
+    const [latitude, setLatitude] = useState(46.7790842);
+    const [longitude, setLongitude] = useState(23.6165949);
     const [student, setStudent] = useState<StudentProps>();
     const {photos, takePhoto, deletePhoto} = usePhotoGallery();
     const [photoToDelete, setPhotoToDelete] = useState<Photo>();
@@ -148,8 +148,8 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
     }
 
     //useEffect(chainAnimations, []);
-    // useEffect(simpleAnimations, []);
-    useEffect(chainAnimations, []);
+    useEffect(simpleAnimations, []);
+   // useEffect(groupAnimations, []);
 
     return (
         <IonPage>
