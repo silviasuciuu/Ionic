@@ -12,7 +12,6 @@ const Student: React.FC<StudentPropsExt> = ({_id, nume, prenume, grupa, active, 
 
 
         <IonItem onClick={() => onEdit(_id)}>
-
             <IonLabel>{_id}</IonLabel>
             <IonLabel>{nume}</IonLabel>
             <IonLabel>{prenume}</IonLabel>

@@ -203,14 +203,7 @@ const StudentEdit: React.FC<StudentEditProps> = ({history, match}) => {
                         <IonIcon icon={camera}/>
                     </IonFabButton>
                 </IonFab>
-                <MyMap
-                    lat={latitude}
-                    lng={longitude}
-                    onMapClick={(location: any) => {
-                        setLatitude(location.latLng.lat());
-                        setLongitude(location.latLng.lng());
-                    }}
-                />
+
 
                     <IonActionSheet
                         isOpen={!!photoToDelete}
